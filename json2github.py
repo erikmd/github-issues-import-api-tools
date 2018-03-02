@@ -65,9 +65,9 @@ github_token = ""
 existing_issues = 0
 # existing issues <=> issue numbers already taken in GitHub dest repo.
 # this info is provided by CLI arg (the script can find this by itself
-# but this will spare API requests.
+# but this will spare API requests)
 
-# WARNING: each imported issue will have these extra labels associated
+# FIXME/WARN: each imported issue will have these extra labels associated
 labels_to_add = ["pg: async"]
 
 # Feel free to modify this
@@ -138,7 +138,7 @@ def strid_convert_from_match(match):
     return match.group(1) + '#' + str(id_convert(match.group(2)))
 
 
-# WARNING: this function is OK for PG's migration but it's actually
+# FIXME/WARN: this function is OK for PG's migration but it's actually
 # incomplete as we'd also need to substitute owner-1/repo-1#1, etc.
 def subst_comment_id(body):
     # Replace #1 with #238
@@ -244,7 +244,7 @@ def bug_convert(bug, comments_path):
     # Set closed
     state = bug.pop("state")
     ret["closed"] = (state == "closed")
-    # WARNING: We only assign open bug reports
+    # FIXME/WARN: We only assign open bug reports
     assignee = bug.pop("assignee")
     if not ret["closed"] and assignee:
         ret["assignee"] = assignee
@@ -282,7 +282,7 @@ def bugs_convert(src_issues_json, comments_path):
     global src_issues
     src_issues = []
     for issue in src_issues_json:
-        # WARNING: Don't import pull requests
+        # FIXME/WARN: Don't import pull requests
         if "pull_request" not in issue:
             src_issues.append(issue["number"])
     if src_issues == []:
@@ -296,7 +296,7 @@ def bugs_convert(src_issues_json, comments_path):
         print("INFO: will import source issues %s" % str(src_issues))
     new_issues = {}
     for issue in src_issues_json:
-        # WARNING: Don't import pull requests
+        # FIXME/WARN: Don't import pull requests
         if "pull_request" not in issue:
             new_issue = bug_convert(issue, comments_path)
             new_id = new_issue.pop("number")
