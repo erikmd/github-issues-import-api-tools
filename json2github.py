@@ -227,8 +227,8 @@ def bug_convert(bug, comments_path):
 
     # Convert number
     src_number = bug.pop("number")
+    # Set src_number and number (will be popped later)
     ret["number"] = id_convert(src_number)
-    # Set src_number (will be popped later)
     ret["src_number"] = src_number
     # Set comments (will be popped later)
     ret["comments"].extend(get_comments_convert(src_number, comments_path))
@@ -293,7 +293,7 @@ def bugs_convert(src_issues_json, comments_path):
     new_issues = {}
     for issue in src_issues_json:
         new_issue = bug_convert(issue, comments_path)
-        new_id = new_issue["number"]
+        new_id = new_issue.pop("number")
         new_issues[new_id] = new_issue
     return new_issues
 
