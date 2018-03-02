@@ -221,7 +221,7 @@ def bug_convert(bug, comments_path):
     ret["body"] = []
     ret["body"].append("Note: the issue was imported automatically using %s"
                        % os.path.basename(__file__))
-    # No Need For ret["body"].append("")
+    ret["body"].append("")
     ret["comments"] = []
     ret["labels"] = []
 
