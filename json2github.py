@@ -55,6 +55,7 @@ github_url = "https://api.github.com"
 src_issues = []
 
 # Default values
+src_prefix_issues = ""
 force_update = False
 json_file = ""
 comments_path = ""
@@ -68,11 +69,6 @@ existing_issues = 0
 
 # WARNING: each imported issue will have these extra labels associated
 labels_to_add = ["pg: async"]
-
-# WARNING: hard-coded
-src_prefix_issues_add = True
-src_prefix_issues = "psteckler/ProofGeneral"
-src_prefix_issues = "erikmd/test-issues"  #TODO/FIXME
 
 # Feel free to modify this
 debug = False
@@ -106,13 +102,14 @@ def usage():
     print("Issues JSON file to GitHub Issues Uploader")
     print("Usage: \t%s [-h] [-f]\n"
           "\t[-j <src JSON file>] [-c <comments folder path>]\n"
+          "\t[-p <src-user/src-repo>] (optional, if you want backlinks)\n"
           "\t[-i <existing issues>]\n"
           "\t[-o <dst GitHub owner>] [-r <dst repo>] [-t <dst access token>]\n"
           % os.path.basename(__file__))
     print("Example:")
     print("\t%s -h" % os.path.basename(__file__))
-    print("\t%s -j issues.json -c ./comments/ -i 0 \\\n"
-          "\t\t-o dst_login -r dst_repo -t dst_token"
+    print("\t%s -j issues.json -c ./comments/ -p src_user/src_repo \\\n"
+          "\t\t-i 0 -o dst_login -r dst_repo -t dst_token"
           % os.path.basename(__file__))
     exit(1)
 
@@ -221,7 +218,7 @@ def get_comments_convert(src_number, comments_path):
 
 
 def bug_convert(bug, comments_path):
-    global src_prefix_issues_add
+    global src_prefix_issues
     ret = {}
     ret["body"] = []
     ret["body"].append("Note: the issue was imported automatically using %s"
@@ -261,9 +258,11 @@ def bug_convert(bug, comments_path):
     login = bug.pop("user")["login"]
 
     # Create the bug description
-    if src_prefix_issues_add:
-        ret["body"].append("Original issue: %s#%d"
-                           % (src_prefix_issues, src_number))
+    if src_prefix_issues:
+        text = "Original issue: %s#%d" % (src_prefix_issues, src_number)
+    else:
+        text = "Original issue number: %d" % src_number
+    ret["body"].append(text)
     ret["body"].append("Opened by: @" + login)
     ret["body"].append("")
     ret["body"].append(subst_comment_id(bug.pop("body")))
@@ -516,10 +515,10 @@ def github_issues_add(issues):
 def args_parse(argv):
     global force_update
     global github_owner, github_repo, github_token
-    global json_file, comments_path, existing_issues
+    global json_file, comments_path, existing_issues, src_prefix_issues
 
     try:
-        opts, args = getopt.getopt(argv, "hfo:r:t:j:c:i:")
+        opts, args = getopt.getopt(argv, "hfo:r:t:j:c:i:p:")
     except getopt.GetoptError:
         usage()
     for opt, arg in opts:
@@ -542,6 +541,8 @@ def args_parse(argv):
             comments_path = arg
         elif opt == "-i":
             existing_issues = int(arg)
+        elif opt == "-p":
+            src_prefix_issues = arg
 
     # Check the arguments
     if (not (json_file and comments_path and
