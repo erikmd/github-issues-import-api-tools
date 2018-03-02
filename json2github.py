@@ -52,7 +52,6 @@ import sys
 import time
 
 github_url = "https://api.github.com"
-
 src_issues = []
 
 # Default values
@@ -74,6 +73,9 @@ labels_to_add = ["pg: async"]
 src_prefix_issues_add = True
 src_prefix_issues = "psteckler/ProofGeneral"
 src_prefix_issues = "erikmd/test-issues"  #TODO/FIXME
+
+# Feel free to modify this
+debug = False
 
 issue_unused_fields = [
     "url",
@@ -312,8 +314,8 @@ def github_get(url, avs={}):
     else:
         u = "%s/repos/%s/%s/%s" % (github_url, github_owner, github_repo, url)
 
-    # TODO: debug
-    # print "GET: " + u
+    if debug:
+        print("GET: " + u)
 
     avs["access_token"] = github_token
     return requests.get(u, params=avs)
@@ -336,9 +338,9 @@ def github_post(url, avs={}, fields=[]):
             exit(1)
         d[field] = avs[field]
 
-    # TODO: debug
-    # print("POST: " + u)
-    # print("DATA: " + json.dumps(d))
+    if debug:
+        print("POST: " + u)
+        print("DATA: " + json.dumps(d))
 
     if force_update:
         return requests.post(u, params={"access_token": github_token},
@@ -604,8 +606,8 @@ def main(argv):
     # for i in xrange(1,existing_issues + 1):
     #     github_issue_append(0, fake_issue)
 
-    # TODO: debug
-    # print(json.dumps(issues))
+    # if debug:
+    #     print("JSON (beware of size): " + json.dumps(issues))
 
     print("===> Adding issues on GitHub...")
     github_issues_add(issues)
