@@ -120,7 +120,6 @@ def is_strictly_sorted(l):
 
 def id_convert(inp):
     id = int(inp)
-    global src_issues, existing_issues
     # Assume is_strictly_sorted(src_issues) and src_issues[0] >= 1
     if id not in src_issues:
         print("WARNING: %d doesn't belong in %s" % (id, src_issues))
@@ -218,7 +217,6 @@ def get_comments_convert(src_number, comments_path):
 
 
 def bug_convert(bug, comments_path):
-    global src_prefix_issues
     ret = {}
     ret["body"] = []
     ret["body"].append("Note: the issue was imported automatically using %s"
@@ -271,7 +269,6 @@ def bug_convert(bug, comments_path):
     ret["body"] = "\n".join(ret["body"])
 
     # Ignore some bug fields
-    global issue_unused_fields
     fields_ignore(bug, issue_unused_fields)
     # Make sure we have converted all the fields
     if bug:
@@ -302,8 +299,6 @@ def bugs_convert(src_issues_json, comments_path):
 
 
 def github_get(url, avs={}):
-    global json_file, github_url, github_owner, github_repo, github_token
-
     if url[0] == "/":
         u = "%s%s" % (github_url, url)
     elif url.startswith("https://"):
@@ -321,9 +316,6 @@ def github_get(url, avs={}):
 
 
 def github_post(url, avs={}, fields=[]):
-    global force_update
-    global json_file, github_url, github_owner, github_repo, github_token
-
     if url[0] == "/":
         u = "%s%s" % (github_url, url)
     else:
@@ -367,8 +359,6 @@ def github_label_create(label):
 
 
 def github_labels_check(issues):
-    global force_update
-
     labels_set = set()
     for id in issues:
         for label in issues[id]["labels"]:
@@ -415,7 +405,6 @@ def github_issue_get(number):
 
 
 def github_issue_append(new_id, issue):
-    global github_owner, github_repo, github_token
     params = {"access_token": github_token}
     headers = {"Accept": "application/vnd.github.golden-comet-preview+json"}
     src_id = issue.pop("src_number", 0)
@@ -490,7 +479,6 @@ def github_issue_append(new_id, issue):
 #                 github_issue_append(todo_id, issue)
 
 def github_issues_add(issues):
-    global existing_issues
     id = existing_issues
     while True:
         id += 1
@@ -554,8 +542,7 @@ def args_parse(argv):
 
 
 def main(argv):
-    global json_file, github_owner, github_repo, existing_issues, comments_path
-
+    global existing_issues
     # Parse command line arguments
     args_parse(argv)
     print("===> Importing JSON data to GitHub Issues...")
