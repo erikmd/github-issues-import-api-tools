@@ -24,19 +24,19 @@
 #
 # 2. Export issues from repo-1 into a .json file:
 # curl -f -i -X GET -H "Accept: application/json" "https://api.github.com/repos/username/repo-1/issues?state=all&sort=created&direction=asc" > page-1.txt
-# head -n 24 page-1.txt # etc. > issues.json
+# tail -n+24 page-1.txt > issues.json # etc. (cat pages to a single JSON array)
 #
 # 3. Export issues comments from repo-1
 # perl -wne 'if(m|comments",|) { s/^.*(https:.*comments)".*$/$1/; print; }' issues.json > URLs.txt
 # export GITHUB_TOKEN="..."
-# mkdir comments && cd comments
-# cat ../URLs.txt | xargs -L 1 bash -c 'URL="$1"; NUM=${URL%/comments}; NUM=${NUM##*/}; echo "Retrieving ${URL} ..."; curl -fsSL -X GET -H "Authorization: token ${GITHUB_TOKEN}" -H "Accept: application/json" -o "${NUM}.json" "${URL}"' bash
+# mkdir comments
+# cat URLs.txt | xargs -L 1 bash -c 'URL="$1"; NUM=${URL%/comments}; NUM=${NUM##*/}; echo "Retrieving ${URL} ..."; curl -fsSL -X GET -H "Authorization: token ${GITHUB_TOKEN}" -H "Accept: application/json" -o "./comments/${NUM}.json" "${URL}"' bash
 #
 # 4. Run the migration script and check all the warnings:
-# ./json2github.py -j issues.json -c ./comments/ -i 0 -o owner -r repo -t token
+# ./json2github.py -j issues.json -c ./comments/ -i 0 -o owner -r repo -t $GITHUB_TOKEN
 #
 # 5. Run the migration script again and force the updates:
-# ./json2github.py -j issues.json -c ./comments/ -i 0 -o owner -r repo -t token -f
+# ./json2github.py -j issues.json -c ./comments/ -i 0 -o owner -r repo -t $GITHUB_TOKEN -f
 #
 # The script depends on the requests package.
 # You can get the right environment by running:
@@ -213,7 +213,7 @@ def comments_convert(comments):
 
 
 def get_comments_convert(src_number, comments_path):
-    with open("comments_path" + src_number + ".json") as json_data:
+    with open(comments_path + str(src_number) + ".json") as json_data:
         comments_json = json.load(json_data)
     return comments_convert(comments_json)
 
@@ -245,7 +245,8 @@ def bug_convert(bug, comments_path):
     # Set updated_at
     ret["updated_at"] = bug.pop("updated_at")
     # Set closed
-    ret["closed"] = bug.pop("closed")
+    state = bug.pop("state")
+    ret["closed"] = (state == "closed")
     # WARNING: We only assign open bug reports
     assignee = bug.pop("assignee")
     if not ret["closed"] and assignee:
@@ -293,7 +294,9 @@ def bugs_convert(src_issues_json, comments_path):
         exit(2)
     new_issues = {}
     for issue in src_issues_json:
-        new_issues[id] = bug_convert(issue, comments_path)
+        new_issue = bug_convert(issue, comments_path)
+        new_id = new_issue["number"]
+        new_issues[new_id] = new_issue
     return new_issues
 
 
@@ -414,7 +417,7 @@ def github_issue_append(new_id, issue):
     global github_owner, github_repo, github_token
     params = {"access_token": github_token}
     headers = {"Accept": "application/vnd.github.golden-comet-preview+json"}
-    src_id = issue.pop("src_number")
+    src_id = issue.pop("src_number", 0)
     print("\timporting %s#%d to #%d on GitHub..."
           % (src_prefix_issues, src_id, new_id))
     u = ("https://api.github.com/repos/%s/%s/import/issues"
@@ -554,6 +557,7 @@ def main(argv):
     args_parse(argv)
     print("===> Importing JSON data to GitHub Issues...")
     print("\tSource JSON file:   %s" % json_file)
+    print("\tSrc. comments dir.:  %s" % comments_path)
     print("\tDest. GitHub owner: %s" % github_owner)
     print("\tDest. GitHub repo:  %s" % github_repo)
 
@@ -599,6 +603,9 @@ def main(argv):
     # fake_issue = {"title": "Fake issue", "body": "Fake issue", "closed": True}
     # for i in xrange(1,existing_issues + 1):
     #     github_issue_append(0, fake_issue)
+
+    # TODO: debug
+    # print(json.dumps(issues))
 
     print("===> Adding issues on GitHub...")
     github_issues_add(issues)
