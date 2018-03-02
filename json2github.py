@@ -898,7 +898,7 @@ def args_parse(argv):
             xml_file = arg
 
     # Check the arguments
-    if (not xml_file or not github_owner or not github_repo or not github_token):
+    if (not (xml_file and github_owner and github_repo and github_token)):
         print("Error parsing arguments: "
               "please specify XML file, GitHub owner, repo and token")
         usage()
