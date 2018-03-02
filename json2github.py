@@ -142,7 +142,7 @@ def strid_convert_from_match(match):
 # incomplete as we'd also need to substitute owner-1/repo-1#1, etc.
 def subst_comment_id(body):
     # Replace #1 with #238
-    return re.sub(r'(^|\s)#(\d\d?\d?\d?)', strid_convert_from_match, body)
+    return re.sub(r'(^|\(|\[|\s)#(\d\d?\d?\d?)', strid_convert_from_match, body)
 
 # TESTCASE
 # existing_issues = 237
