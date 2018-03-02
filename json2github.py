@@ -282,7 +282,9 @@ def bugs_convert(src_issues_json, comments_path):
     global src_issues
     src_issues = []
     for issue in src_issues_json:
-        src_issues.append(issue["number"])
+        # WARNING: Don't import pull requests
+        if "pull_request" not in issue:
+            src_issues.append(issue["number"])
     if src_issues == []:
         print("WARNING: no issue")
         exit(0)
@@ -290,11 +292,15 @@ def bugs_convert(src_issues_json, comments_path):
         print("ERROR: issues numbers %s not strictly increasing"
               % str(src_issues))
         exit(2)
+    if debug:
+        print("INFO: will import source issues %s" % str(src_issues))
     new_issues = {}
     for issue in src_issues_json:
-        new_issue = bug_convert(issue, comments_path)
-        new_id = new_issue.pop("number")
-        new_issues[new_id] = new_issue
+        # WARNING: Don't import pull requests
+        if "pull_request" not in issue:
+            new_issue = bug_convert(issue, comments_path)
+            new_id = new_issue.pop("number")
+            new_issues[new_id] = new_issue
     return new_issues
 
 
