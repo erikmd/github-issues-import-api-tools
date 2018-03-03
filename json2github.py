@@ -67,8 +67,9 @@ existing_issues = 0
 # this info is provided by CLI arg (the script can find this by itself
 # but this will spare API requests)
 
-# FIXME/WARN: each imported issue will have these extra labels associated
-labels_to_add = ["pg: async"]
+#FIXME/WARN: each imported issue will have these extra labels associated
+# labels_to_add = ["pg: async"]
+labels_to_add = []
 
 # Feel free to modify this
 debug = False
@@ -138,7 +139,7 @@ def strid_convert_from_match(match):
     return match.group(1) + '#' + str(id_convert(match.group(2)))
 
 
-# FIXME/WARN: this function is OK for PG's migration but it's actually
+#FIXME/WARN: this function is OK for PG's migration but it's actually
 # incomplete as we'd also need to substitute owner-1/repo-1#1, etc.
 def subst_comment_id(body):
     # Replace #1 with #238
@@ -244,7 +245,7 @@ def bug_convert(bug, comments_path):
     # Set closed
     state = bug.pop("state")
     ret["closed"] = (state == "closed")
-    # FIXME/WARN: We only assign open bug reports
+    #FIXME/WARN: We only assign open bug reports
     assignee = bug.pop("assignee")
     if not ret["closed"] and assignee:
         ret["assignee"] = assignee
@@ -282,7 +283,7 @@ def bugs_convert(src_issues_json, comments_path):
     global src_issues
     src_issues = []
     for issue in src_issues_json:
-        # FIXME/WARN: Don't import pull requests
+        #FIXME/WARN: Don't import pull requests
         if "pull_request" not in issue:
             src_issues.append(issue["number"])
     if src_issues == []:
@@ -296,7 +297,7 @@ def bugs_convert(src_issues_json, comments_path):
         print("INFO: will import source issues %s" % str(src_issues))
     new_issues = {}
     for issue in src_issues_json:
-        # FIXME/WARN: Don't import pull requests
+        #FIXME/WARN: Don't import pull requests
         if "pull_request" not in issue:
             new_issue = bug_convert(issue, comments_path)
             new_id = new_issue.pop("number")
@@ -420,7 +421,7 @@ def github_issue_append(new_id, issue):
          % (github_owner, github_repo))
     comments = issue.pop("comments", [])
     # We can't assign people which are not in the organization / collaborators on the repo
-    if github_owner != "ProofGeneral":  # FIXME
+    if github_owner != "ProofGeneral":  #FIXME/WARN: this test may be removed
         issue.pop("assignee", None)
     r = requests.post(u, params=params, headers=headers,
                       data=json.dumps({"issue": issue, "comments": comments}))
